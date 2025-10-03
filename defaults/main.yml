@@ -183,9 +183,8 @@ typesense_systemd_wanted_services_list_default: []
 typesense_systemd_wanted_services_list_auto: []
 typesense_systemd_wanted_services_list_custom: []
 
-# Specify a random string for signing authentication tokens
-# generated with `openssl rand -hex 32` or in another way.
-typesense_environment_variables_secret_key: ""
+# Specify a bootstrap admin API key generated with `pwgen -s 64 1` or in another way
+typesense_environment_variables_api_key: ""
 
 # Specify a database driver to use
 # Valid values: mysql, postgres, sqlite

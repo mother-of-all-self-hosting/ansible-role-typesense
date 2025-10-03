@@ -17,7 +17,7 @@
     - typesense_hostname
     - typesense_path_prefix
     - typesense_container_network
-    - typesense_environment_variables_secret_key
+    - typesense_environment_variables_api_key
 
 - name: Fail if Typesense database type is invalid
   ansible.builtin.fail:
