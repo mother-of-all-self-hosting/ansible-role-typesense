@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2023 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2025 Suguru Hirahara
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Perform Opengist installation tasks
+  when: opengist_enabled | bool
+  tags:
+    - setup-all
+    - setup-opengist
+    - install-all
+    - install-opengist
+  block:
+    - name: Validate Opengist configuration
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+    - name: Install Opengist
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
+
+- name: Perform Opengist uninstallation tasks
+  when: not opengist_enabled | bool
+  tags:
+    - setup-all
+    - setup-opengist
+  block:
+    - name: Uninstall Opengist
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"
