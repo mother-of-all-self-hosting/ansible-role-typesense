@@ -48,18 +48,6 @@ typesense_enabled: true
 ########################################################################
 ```
 
-### Set the hostname
-
-To enable Typesense you need to set the hostname as well. To do so, add the following configuration to your `vars.yml` file. Make sure to replace `example.com` with your own value.
-
-```yaml
-typesense_hostname: "example.com"
-```
-
-After adjusting the hostname, make sure to adjust your DNS records to point the domain to your server.
-
-**Note**: hosting Typesense under a subpath (by configuring the `typesense_path_prefix` variable) does not seem to be possible due to Typesense's technical limitations.
-
 ### Set admin API key
 
 You also need to specify a bootstrap admin API key. To do so, add the following configuration to your `vars.yml` file. The value can be generated with `pwgen -s 64 1` or in another way.
@@ -67,6 +55,22 @@ You also need to specify a bootstrap admin API key. To do so, add the following 
 ```yaml
 typesense_environment_variables_api_key: YOUR_SECRET_KEY_HERE
 ```
+
+### Exposing the instance (optional)
+
+By default, the Typesense instance is not exposed externally, as it is mainly intended to be used in the internal network, connected to other services.
+
+To expose it to the internet, add the following configuration to your `vars.yml` file. Make sure to replace `example.com` with your own value.
+
+```yaml
+typesense_hostname: "example.com"
+
+typesense_container_labels_traefik_enabled: true
+```
+
+After adjusting the hostname, make sure to adjust your DNS records to point the domain to your server.
+
+**Note**: hosting Typesense under a subpath (by configuring the `typesense_path_prefix` variable) does not seem to be possible due to Typesense's technical limitations.
 
 ### Extending the configuration
 
@@ -90,7 +94,7 @@ If you use the MASH playbook, the shortcut commands with the [`just` program](ht
 
 ## Usage
 
-After running the command for installation, Typesense becomes available at the specified hostname like `https://example.com`.
+After running the command for installation, Typesense becomes available internally to other services on the same network. If the service is exposed to the internet, it becomes available at the specified hostname like `https://example.com`.
 
 ## Troubleshooting
 

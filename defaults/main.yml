@@ -73,7 +73,7 @@ typesense_container_additional_volumes_custom: []
 # See `../templates/labels.j2` for details.
 #
 # To inject your own other container labels, see `typesense_container_labels_additional_labels`.
-typesense_container_labels_traefik_enabled: true
+typesense_container_labels_traefik_enabled: false
 typesense_container_labels_traefik_docker_network: "{{ typesense_container_network }}"
 typesense_container_labels_traefik_hostname: "{{ typesense_hostname }}"
 # The path prefix must either be `/` or not end with a slash (e.g. `/typesense`).
