@@ -8,7 +8,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-# Project source code URL: https://github.com/thomiceli/typesense
+# Project source code URL: https://github.com/typesense/typesense
 
 typesense_enabled: true
 
@@ -16,8 +16,8 @@ typesense_identifier: typesense
 typesense_base_path: "/{{ typesense_identifier }}"
 typesense_data_path: "{{ typesense_base_path }}/data"
 
-# renovate: datasource=docker depName=thomiceli/typesense
-typesense_version: 1.11.1
+# renovate: datasource=docker depName=typesense/typesense
+typesense_version: 29.0
 
 typesense_uid: ""
 typesense_gid: ""
@@ -34,16 +34,16 @@ typesense_hostname: ""
 # technical limitations.
 typesense_path_prefix: /
 
-typesense_container_image: "{{ typesense_container_image_registry_prefix }}thomiceli/typesense:{{ typesense_container_image_tag }}"
+typesense_container_image: "{{ typesense_container_image_registry_prefix }}typesense/typesense:{{ typesense_container_image_tag }}"
 typesense_container_image_tag: "{{ typesense_version }}"
 typesense_container_image_registry_prefix: "{{ typesense_container_image_registry_prefix_upstream }}"
 typesense_container_image_registry_prefix_upstream: "{{ typesense_container_image_registry_prefix_upstream_default }}"
-typesense_container_image_registry_prefix_upstream_default: ghcr.io/
+typesense_container_image_registry_prefix_upstream_default: docker.io/
 typesense_container_image_force_pull: "{{ typesense_container_image.endswith(':latest') }}"
 
 typesense_container_image_self_build: false
-typesense_container_image_self_build_name: "thomiceli/typesense:{{ typesense_container_image_self_build_repo_version }}"
-typesense_container_image_self_build_repo: "https://github.com/thomiceli/typesense.git"
+typesense_container_image_self_build_name: "typesense/typesense:{{ typesense_container_image_self_build_repo_version }}"
+typesense_container_image_self_build_repo: "https://github.com/typesense/typesense.git"
 typesense_container_image_self_build_repo_version: "{{ 'v' + typesense_version if typesense_version != 'latest' else 'main' }}"
 typesense_container_image_self_build_src_files_path: "{{ typesense_base_path }}/docker-src"
 
