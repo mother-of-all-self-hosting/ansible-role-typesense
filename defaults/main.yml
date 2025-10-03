@@ -42,7 +42,7 @@ typesense_container_image_registry_prefix_upstream_default: docker.io/
 typesense_container_image_force_pull: "{{ typesense_container_image.endswith(':latest') }}"
 # TODO: add tasks to self-build the image
 
-# Controls whether the container exposes its HTTP port (tcp/6157 in the container).
+# Controls whether the container exposes its HTTP port (tcp/8108 in the container).
 #
 # Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:2586"), or empty string to not expose.
 typesense_container_http_host_bind_port: ""
@@ -56,7 +56,7 @@ typesense_container_ssh_host_bind_port: ""
 typesense_container_network: "{{ typesense_identifier }}"
 
 # The port number in the container
-typesense_container_http_port: 6157
+typesense_container_http_port: 8108
 
 # The port number in the container
 typesense_container_ssh_port: 2222
