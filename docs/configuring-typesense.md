@@ -20,11 +20,11 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Setting up Typesense
 
-This is an [Ansible](https://www.ansible.com/) role which installs [Typesense](https://typesense.io/) to run as a [Docker](https://www.docker.com/) container wrapped in a systemd service.
+This is an [Ansible](https://www.ansible.com/) role which installs [Typesense](https://typesense.org) to run as a [Docker](https://www.docker.com/) container wrapped in a systemd service.
 
 Typesense is a self-hosted pastebin powered by Git. All snippets are stored in a Git repository and can be read and/or modified using standard Git commands, or with the web interface.
 
-See the project's [documentation](https://typesense.io/docs/) to learn what Typesense does and why it might be useful to you.
+See the project's [documentation](https://typesense.org/docs/) to learn what Typesense does and why it might be useful to you.
 
 ## Prerequisites
 
@@ -106,7 +106,7 @@ Take a look at:
 
 - [`defaults/main.yml`](../defaults/main.yml) for some variables that you can customize via your `vars.yml` file. You can override settings (even those that don't have dedicated playbook variables) using the `typesense_environment_variables_additional_variables` variable
 
-See [the official documentation](https://typesense.io/docs/configuration/cheat-sheet.html) for a complete list of Typesense's config options that you could put in `typesense_environment_variables_additional_variables`.
+See [the official documentation](https://typesense.org/docs/) for a complete list of Typesense's config options that you could put in `typesense_environment_variables_additional_variables`.
 
 ## Installing
 
