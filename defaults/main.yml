@@ -40,12 +40,7 @@ typesense_container_image_registry_prefix: "{{ typesense_container_image_registr
 typesense_container_image_registry_prefix_upstream: "{{ typesense_container_image_registry_prefix_upstream_default }}"
 typesense_container_image_registry_prefix_upstream_default: docker.io/
 typesense_container_image_force_pull: "{{ typesense_container_image.endswith(':latest') }}"
-
-typesense_container_image_self_build: false
-typesense_container_image_self_build_name: "typesense/typesense:{{ typesense_container_image_self_build_repo_version }}"
-typesense_container_image_self_build_repo: "https://github.com/typesense/typesense.git"
-typesense_container_image_self_build_repo_version: "{{ 'v' + typesense_version if typesense_version != 'latest' else 'main' }}"
-typesense_container_image_self_build_src_files_path: "{{ typesense_base_path }}/docker-src"
+# TODO: add tasks to self-build the image
 
 # Controls whether the container exposes its HTTP port (tcp/6157 in the container).
 #
