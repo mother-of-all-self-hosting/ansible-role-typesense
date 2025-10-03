@@ -4,24 +4,24 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-- name: Perform Opengist installation tasks
-  when: opengist_enabled | bool
+- name: Perform Typesense installation tasks
+  when: typesense_enabled | bool
   tags:
     - setup-all
-    - setup-opengist
+    - setup-typesense
     - install-all
-    - install-opengist
+    - install-typesense
   block:
-    - name: Validate Opengist configuration
+    - name: Validate Typesense configuration
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
-    - name: Install Opengist
+    - name: Install Typesense
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
 
-- name: Perform Opengist uninstallation tasks
-  when: not opengist_enabled | bool
+- name: Perform Typesense uninstallation tasks
+  when: not typesense_enabled | bool
   tags:
     - setup-all
-    - setup-opengist
+    - setup-typesense
   block:
-    - name: Uninstall Opengist
+    - name: Uninstall Typesense
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"

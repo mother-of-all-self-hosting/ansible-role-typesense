@@ -7,12 +7,12 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 #}
 
 [Unit]
-Description=Opengist ({{ opengist_identifier }})
-{% for service in opengist_systemd_required_services_list %}
+Description=Typesense ({{ typesense_identifier }})
+{% for service in typesense_systemd_required_services_list %}
 Requires={{ service }}
 After={{ service }}
 {% endfor %}
-{% for service in opengist_systemd_wanted_services_list %}
+{% for service in typesense_systemd_wanted_services_list %}
 Wants={{ service }}
 {% endfor %}
 DefaultDependencies=no
@@ -20,51 +20,51 @@ DefaultDependencies=no
 [Service]
 Type=simple
 Environment="HOME={{ devture_systemd_docker_base_systemd_unit_home_path }}"
-ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} stop -t {{ devture_systemd_docker_base_container_stop_grace_time_seconds }} {{ opengist_identifier }} 2>/dev/null || true'
-ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ opengist_identifier }} 2>/dev/null || true'
+ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} stop -t {{ devture_systemd_docker_base_container_stop_grace_time_seconds }} {{ typesense_identifier }} 2>/dev/null || true'
+ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ typesense_identifier }} 2>/dev/null || true'
 
 {#
-  PUID and PGID are specified on env.j2 to run the container as opengist_uid:opengist_gid
+  PUID and PGID are specified on env.j2 to run the container as typesense_uid:typesense_gid
 #}
 ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       --rm \
-      --name={{ opengist_identifier }} \
+      --name={{ typesense_identifier }} \
       --log-driver=none \
       --cap-drop=ALL \
       --cap-add=CAP_DAC_OVERRIDE \
       --cap-add=CHOWN \
       --cap-add=SETUID \
       --cap-add=SETGID \
-      --network={{ opengist_container_network }} \
-      {% if opengist_container_http_host_bind_port %}
-      -p {{ opengist_container_http_host_bind_port }}:{{ opengist_container_http_port }} \
+      --network={{ typesense_container_network }} \
+      {% if typesense_container_http_host_bind_port %}
+      -p {{ typesense_container_http_host_bind_port }}:{{ typesense_container_http_port }} \
       {% endif %}
-      {% if opengist_container_ssh_host_bind_port %}
-      -p {{ opengist_container_ssh_host_bind_port }}:{{ opengist_container_ssh_port }} \
+      {% if typesense_container_ssh_host_bind_port %}
+      -p {{ typesense_container_ssh_host_bind_port }}:{{ typesense_container_ssh_port }} \
       {% endif %}
-      --env-file={{ opengist_base_path }}/env \
-      --label-file={{ opengist_base_path }}/labels \
-      --mount type=bind,src={{ opengist_data_path }},dst=/opengist \
-      {% for volume in opengist_container_additional_volumes %}
+      --env-file={{ typesense_base_path }}/env \
+      --label-file={{ typesense_base_path }}/labels \
+      --mount type=bind,src={{ typesense_data_path }},dst=/typesense \
+      {% for volume in typesense_container_additional_volumes %}
       --mount type={{ volume.type | default('bind' if '/' in volume.src else 'volume') }},src={{ volume.src }},dst={{ volume.dst }}{{ (',' + volume.options) if volume.options else '' }} \
       {% endfor %}
-      {% for arg in opengist_container_extra_arguments %}
+      {% for arg in typesense_container_extra_arguments %}
       {{ arg }} \
       {% endfor %}
-      {{ opengist_container_image_self_build_name if opengist_container_image_self_build else opengist_container_image }}
+      {{ typesense_container_image_self_build_name if typesense_container_image_self_build else typesense_container_image }}
 
-{% for network in opengist_container_additional_networks %}
-ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} network connect {{ network }} {{ opengist_identifier }}
+{% for network in typesense_container_additional_networks %}
+ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} network connect {{ network }} {{ typesense_identifier }}
 {% endfor %}
 
-ExecStart={{ devture_systemd_docker_base_host_command_docker }} start --attach {{ opengist_identifier }}
+ExecStart={{ devture_systemd_docker_base_host_command_docker }} start --attach {{ typesense_identifier }}
 
-ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} stop -t {{ devture_systemd_docker_base_container_stop_grace_time_seconds }} {{ opengist_identifier }} 2>/dev/null || true'
-ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ opengist_identifier }} 2>/dev/null || true'
+ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} stop -t {{ devture_systemd_docker_base_container_stop_grace_time_seconds }} {{ typesense_identifier }} 2>/dev/null || true'
+ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ typesense_identifier }} 2>/dev/null || true'
 
 Restart=always
 RestartSec=30
-SyslogIdentifier={{ opengist_identifier }}
+SyslogIdentifier={{ typesense_identifier }}
 
 [Install]
 WantedBy=multi-user.target
