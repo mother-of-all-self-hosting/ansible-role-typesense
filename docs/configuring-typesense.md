@@ -22,7 +22,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 This is an [Ansible](https://www.ansible.com/) role which installs [Typesense](https://typesense.org) to run as a [Docker](https://www.docker.com/) container wrapped in a systemd service.
 
-Typesense is a self-hosted pastebin powered by Git. All snippets are stored in a Git repository and can be read and/or modified using standard Git commands, or with the web interface.
+Typesense is a fast and typo-tolerant fulltext search engine.
 
 See the project's [documentation](https://typesense.org/docs/) to learn what Typesense does and why it might be useful to you.
 
@@ -95,6 +95,8 @@ If you use the MASH playbook, the shortcut commands with the [`just` program](ht
 ## Usage
 
 After running the command for installation, Typesense becomes available internally to other services on the same network. If the service is exposed to the internet, it becomes available at the specified hostname like `https://example.com`.
+
+See [this page](https://typesense.org/docs/guide/) on the documentation about its usage.
 
 ## Troubleshooting
 
