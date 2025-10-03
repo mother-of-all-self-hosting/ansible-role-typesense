@@ -47,19 +47,11 @@ typesense_container_image_force_pull: "{{ typesense_container_image.endswith(':l
 # Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:2586"), or empty string to not expose.
 typesense_container_http_host_bind_port: ""
 
-# Controls whether the container exposes its SSH port (tcp/2222 in the container).
-#
-# Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:2586"), or empty string to not expose.
-typesense_container_ssh_host_bind_port: ""
-
 # The base container network. It will be auto-created by this role if it doesn't exist already.
 typesense_container_network: "{{ typesense_identifier }}"
 
 # The port number in the container
 typesense_container_http_port: 8108
-
-# The port number in the container
-typesense_container_ssh_port: 2222
 
 # A list of additional container networks that the container would be connected to.
 # The role does not create these networks, so make sure they already exist.
@@ -185,38 +177,6 @@ typesense_systemd_wanted_services_list_custom: []
 
 # Specify a bootstrap admin API key generated with `pwgen -s 64 1` or in another way
 typesense_environment_variables_api_key: ""
-
-# Specify a database driver to use
-# Valid values: mysql, postgres, sqlite
-typesense_database_type: sqlite
-
-# Specify database configuration
-typesense_database_filename: typesense.db
-typesense_database_mysql_hostname: ""
-typesense_database_mysql_port: 3306
-typesense_database_mysql_username: typesense
-typesense_database_mysql_password: ""
-typesense_database_postgres_hostname: ""
-typesense_database_postgres_port: 5432
-typesense_database_postgres_username: typesense
-typesense_database_postgres_password: ""
-typesense_database_name: typesense
-
-# Specify a log level
-# Valid values: debug, info, warn, error, fatal
-typesense_environment_variables_log_level: warn
-
-# Specify the log output
-typesense_environment_variables_log_output: stdout,file
-
-# Control if git operations (clone, pull, push) via HTTP are enabled
-typesense_environment_variables_http_git_enabled: true
-
-# Control if Prometheus metrics endpoint is enabled at /metrics
-typesense_environment_variables_metrics_enabled: false
-
-# Control if git operations (clone, pull, push) via SSH are enabled
-typesense_environment_variables_ssh_git_enabled: true
 
 # Additional environment variables.
 typesense_environment_variables_additional_variables: ""

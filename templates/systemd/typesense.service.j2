@@ -34,9 +34,6 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       {% if typesense_container_http_host_bind_port %}
       -p {{ typesense_container_http_host_bind_port }}:{{ typesense_container_http_port }} \
       {% endif %}
-      {% if typesense_container_ssh_host_bind_port %}
-      -p {{ typesense_container_ssh_host_bind_port }}:{{ typesense_container_ssh_port }} \
-      {% endif %}
       --env-file={{ typesense_base_path }}/env \
       --label-file={{ typesense_base_path }}/labels \
       --mount type=bind,src={{ typesense_data_path }},dst=/data \

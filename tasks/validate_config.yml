@@ -19,30 +19,6 @@
     - typesense_container_network
     - typesense_environment_variables_api_key
 
-- name: Fail if Typesense database type is invalid
-  ansible.builtin.fail:
-    msg: >-
-      typesense_database_type must be 'mysql', 'postgres', or 'sqlite'.
-  when: "typesense_database_type not in ['mysql', 'postgres', 'sqlite']"
-
-- name: Fail if required Typesense + MySQL integration settings not defined
-  ansible.builtin.fail:
-    msg: >-
-      You need to define a required configuration setting (`{{ item }}`) when `typesense_database_type` is `mysql`
-  when: "typesense_database_type == 'mysql' and lookup('vars', item, default='') | string | length == 0"
-  with_items:
-    - typesense_database_mysql_hostname
-    - typesense_database_mysql_password
-
-- name: Fail if required Typesense + Postgres integration settings not defined
-  ansible.builtin.fail:
-    msg: >-
-      You need to define a required configuration setting (`{{ item }}`) when `typesense_database_type` is `postgres`
-  when: "typesense_database_type == 'postgres' and lookup('vars', item, default='') | string | length == 0"
-  with_items:
-    - typesense_database_postgres_hostname
-    - typesense_database_postgres_password
-
 - name: Run if Traefik is enabled
   when: typesense_container_labels_traefik_enabled | bool
   block:
