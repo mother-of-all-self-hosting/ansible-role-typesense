@@ -23,18 +23,13 @@ Environment="HOME={{ devture_systemd_docker_base_systemd_unit_home_path }}"
 ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} stop -t {{ devture_systemd_docker_base_container_stop_grace_time_seconds }} {{ typesense_identifier }} 2>/dev/null || true'
 ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ typesense_identifier }} 2>/dev/null || true'
 
-{#
-  PUID and PGID are specified on env.j2 to run the container as typesense_uid:typesense_gid
-#}
 ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
       --rm \
       --name={{ typesense_identifier }} \
       --log-driver=none \
+      --user={{ typesense_uid }}:{{ typesense_gid }} \
       --cap-drop=ALL \
-      --cap-add=CAP_DAC_OVERRIDE \
-      --cap-add=CHOWN \
-      --cap-add=SETUID \
-      --cap-add=SETGID \
+      --read-only \
       --network={{ typesense_container_network }} \
       {% if typesense_container_http_host_bind_port %}
       -p {{ typesense_container_http_host_bind_port }}:{{ typesense_container_http_port }} \
