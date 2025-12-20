@@ -175,6 +175,9 @@ typesense_systemd_wanted_services_list_default: []
 typesense_systemd_wanted_services_list_auto: []
 typesense_systemd_wanted_services_list_custom: []
 
+# Specify the timezone
+typesense_environment_variables_tz: UTC
+
 # Specify a bootstrap admin API key generated with `pwgen -s 64 1` or in another way
 typesense_environment_variables_api_key: ""
 
