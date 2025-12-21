@@ -27,7 +27,7 @@ typesense_scheme: https
 # The hostname at which Typesense is served.
 typesense_hostname: ""
 
-# The path at which Typesense is exposed.
+# The path at which Typesense is served.
 # This value must either be `/` or not end with a slash (e.g. `/typesense`).
 #
 # Hosting Typesense under a subpath does not seem to be possible due to Typesense's
