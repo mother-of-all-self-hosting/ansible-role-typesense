@@ -116,7 +116,7 @@ typesense_container_labels_additional_labels: "{{ typesense_container_labels_add
 typesense_container_labels_additional_labels_auto: {}
 typesense_container_labels_additional_labels_custom: {}
 
-# A list of extra arguments to pass to the container (`docker run` command)
+# A list of extra arguments to pass to the container (`docker create` command)
 typesense_container_extra_arguments: "{{ typesense_container_extra_arguments_auto + typesense_container_extra_arguments_custom }}"
 typesense_container_extra_arguments_auto: []
 typesense_container_extra_arguments_custom: []
