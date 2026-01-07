@@ -110,11 +110,11 @@ typesense_container_labels_traefik_additional_response_headers_custom: {}
 #
 # Example:
 # typesense_container_labels_additional_labels_custom: |
-#   my.label=1
-#   another.label="here"
-typesense_container_labels_additional_labels: "{{ typesense_container_labels_additional_labels_auto | combine(typesense_container_labels_additional_labels_custom) }}"
-typesense_container_labels_additional_labels_auto: {}
-typesense_container_labels_additional_labels_custom: {}
+#   - my.label=1
+#   - another.label="here"
+typesense_container_labels_additional_labels: "{{ typesense_container_labels_additional_labels_auto + typesense_container_labels_additional_labels_custom }}"
+typesense_container_labels_additional_labels_auto: []
+typesense_container_labels_additional_labels_custom: []
 
 # A list of extra arguments to pass to the container (`docker create` command)
 typesense_container_extra_arguments: "{{ typesense_container_extra_arguments_auto + typesense_container_extra_arguments_custom }}"

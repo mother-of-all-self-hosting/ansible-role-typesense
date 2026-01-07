@@ -56,4 +56,6 @@ traefik.http.routers.{{ typesense_identifier }}.tls.certResolver={{ typesense_co
 traefik.http.services.{{ typesense_identifier }}.loadbalancer.server.port={{ typesense_container_http_port }}
 {% endif %}
 
-{{ typesense_container_labels_additional_labels }}
+{% for arg in typesense_container_labels_additional_labels %}
+{{ arg }}
+{% endfor %}
