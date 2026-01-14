@@ -22,6 +22,7 @@ typesense_version: 29.0
 typesense_uid: ""
 typesense_gid: ""
 
+# The scheme used for serving Typesense.
 typesense_scheme: https
 
 # The hostname at which Typesense is served.
