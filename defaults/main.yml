@@ -17,7 +17,7 @@ typesense_base_path: "/{{ typesense_identifier }}"
 typesense_data_path: "{{ typesense_base_path }}/data"
 
 # renovate: datasource=docker depName=typesense/typesense
-typesense_version: 29.0
+typesense_version: 30.0
 
 typesense_uid: ""
 typesense_gid: ""
