@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2026 Suguru Hirahara
+# SPDX-FileCopyrightText: 2026 spatterlight
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+- name: Verify Typesense systemd service
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Wait for Typesense service to become active (up to 180s)
+      ansible.builtin.systemd:
+        name: typesense.service
+      register: typesense_service
+      until: typesense_service.status.ActiveState == 'active'
+      retries: 36
+      delay: 5
+
+    - name: Assert Typesense service is active
+      ansible.builtin.assert:
+        that: typesense_service.status.ActiveState == 'active'
+        fail_msg: "typesense.service not active ({{ typesense_service.status.ActiveState }})"
+        success_msg: "typesense.service is active"
+
+    - name: Retrieve Typesense service log for debugging
+      when: typesense_debug_service_enabled | bool
+      ansible.builtin.command:
+        cmd: journalctl -xeu typesense.service
+      changed_when: false
+
+    - name: Wait for Typesense HTTP endpoint to respond (up to 10m)
+      ansible.builtin.uri:
+        url: "http://localhost:8108/health"  # cf. https://typesense.org/docs/guide/install-typesense.html#%F0%9F%86%97-health-check
+        method: GET
+        status_code: [200, 302]
+        follow_redirects: none
+      register: typesense_endpoint
+      until: typesense_endpoint.status in [200, 302]
+      retries: 120
+      delay: 5
+
+    - name: Assert Typesense HTTP endpoint responds
+      ansible.builtin.assert:
+        that: typesense_endpoint.status in [200, 302]
+        fail_msg: "Typesense did not respond as expected ({{ typesense_endpoint.status | default('no response') }})"
+        success_msg: "Typesense responded with {{ typesense_endpoint.status }}"
+
+    - name: Show Typesense systemd service status summary
+      ansible.builtin.debug:
+        msg:
+          - "Typesense systemd: {{ typesense_service.status.ActiveState }}"
+          - "Typesense HTTP: {{ typesense_endpoint.status }}"
