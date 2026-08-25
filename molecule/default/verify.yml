@@ -1,26 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Slavi Pantaleev
 # SPDX-FileCopyrightText: 2026 spatterlight
 # SPDX-FileCopyrightText: 2026 Suguru Hirahara
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-- name: Verify Typesense systemd service
+- name: Verify Typesense
   hosts: all
   become: true
   gather_facts: false
+
+  vars:
+    # The scenario publishes the container's port on this port of the test host.
+    typesense_verify_base_url: http://127.0.0.1:8108
+
+    typesense_verify_collection: molecule-probe
+
+    # A term the indexed document contains, and one no document contains.
+    typesense_verify_hit_term: parabolic
+    typesense_verify_miss_term: hyperbolic
+
+    # `typesense_data_path` is derived through Jinja from `typesense_base_path` and
+    # `typesense_identifier`, so it cannot be read out of the role's defaults with
+    # `include_vars` - only leaf literals survive that. This is what it resolves to.
+    typesense_verify_data_path: /typesense/data
+
   tasks:
-    - name: Wait for Typesense service to become active (up to 180s)
-      ansible.builtin.systemd:
+    # Only leaf literals may be read this way, and only for values that describe the
+    # role itself. Anything the scenario tunes has to come from molecule.yml's
+    # group_vars, which an `include_vars` would otherwise outrank.
+    - name: Read the role's defaults for the pinned Typesense version
+      ansible.builtin.include_vars:
+        file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/main.yml"
+        name: typesense_verify_role_defaults
+
+    - name: Wait for typesense.service to become active (up to 180s)
+      ansible.builtin.systemd_service:
         name: typesense.service
-      register: typesense_service
-      until: typesense_service.status.ActiveState == 'active'
+      register: typesense_verify_service
+      until: typesense_verify_service.status.ActiveState == 'active'
       retries: 36
       delay: 5
 
-    - name: Assert Typesense service is active
+    # The systemd unit carries `Restart=always`, which makes a container that crashes
+    # on every start report `active` all the same. This assertion is here to fail
+    # early with the state printed, not as evidence that Typesense works - that is
+    # what the HTTP checks below are for.
+    - name: Assert typesense.service is active
       ansible.builtin.assert:
-        that: typesense_service.status.ActiveState == 'active'
-        fail_msg: "typesense.service not active ({{ typesense_service.status.ActiveState }})"
+        that: typesense_verify_service.status.ActiveState == 'active'
+        fail_msg: "typesense.service not active ({{ typesense_verify_service.status.ActiveState }})"
         success_msg: "typesense.service is active"
 
     - name: Retrieve Typesense service log for debugging
@@ -29,25 +58,225 @@
         cmd: journalctl -xeu typesense.service
       changed_when: false
 
-    - name: Wait for Typesense HTTP endpoint to respond (up to 10m)
+    # Typesense answers /health with a 503 and `{"ok": false}` while its (single-node)
+    # Raft group has no leader yet, so the body is worth reading rather than settling
+    # for any response at all.
+    - name: Wait for Typesense to report itself healthy (up to 300s)
       ansible.builtin.uri:
-        url: "http://localhost:8108/health"  # cf. https://typesense.org/docs/guide/install-typesense.html#%F0%9F%86%97-health-check
+        url: "{{ typesense_verify_base_url }}/health"
         method: GET
-        status_code: [200, 302]
+        status_code: [200, 503]
         follow_redirects: none
-      register: typesense_endpoint
-      until: typesense_endpoint.status in [200, 302]
-      retries: 120
+      register: typesense_verify_health
+      until: typesense_verify_health.status | default(0) == 200 and (typesense_verify_health.json.ok | default(false) | bool)
+      retries: 60
       delay: 5
 
-    - name: Assert Typesense HTTP endpoint responds
+    - name: Assert Typesense reports itself healthy
       ansible.builtin.assert:
-        that: typesense_endpoint.status in [200, 302]
-        fail_msg: "Typesense did not respond as expected ({{ typesense_endpoint.status | default('no response') }})"
-        success_msg: "Typesense responded with {{ typesense_endpoint.status }}"
+        that:
+          - typesense_verify_health.status == 200
+          - typesense_verify_health.json.ok | bool
+        fail_msg: "Typesense is not healthy ({{ typesense_verify_health.status | default('no response') }}: {{ typesense_verify_health.json | default({}) }})"
+        success_msg: "Typesense reports itself healthy"
 
-    - name: Show Typesense systemd service status summary
+    # /health is the one unauthenticated endpoint, and it says nothing about which API
+    # key is in force. These two requests establish that an instance not holding the
+    # exact key from the role's `env` file could not satisfy any check that follows.
+    - name: Request the collection list without an API key
+      ansible.builtin.uri:
+        url: "{{ typesense_verify_base_url }}/collections"
+        method: GET
+        status_code: [200, 401, 403]
+        follow_redirects: none
+      register: typesense_verify_anonymous
+
+    - name: Assert Typesense refuses an unauthenticated request
+      ansible.builtin.assert:
+        that: typesense_verify_anonymous.status == 401
+        fail_msg: "GET /collections without an API key returned {{ typesense_verify_anonymous.status }}, expected 401"
+        success_msg: "Typesense refuses unauthenticated requests"
+
+    - name: Request the debug endpoint with a wrong API key
+      ansible.builtin.uri:
+        url: "{{ typesense_verify_base_url }}/debug"
+        method: GET
+        headers:
+          X-TYPESENSE-API-KEY: "wrong-{{ typesense_environment_variables_api_key }}"
+        status_code: [200, 401, 403]
+        follow_redirects: none
+      register: typesense_verify_wrong_key
+
+    - name: Assert Typesense refuses a wrong API key
+      ansible.builtin.assert:
+        that: typesense_verify_wrong_key.status == 401
+        fail_msg: "GET /debug with a wrong API key returned {{ typesense_verify_wrong_key.status }}, expected 401"
+        success_msg: "Typesense refuses a wrong API key"
+
+    # A 200 here means the running process holds the API key the role rendered into
+    # `env` from the scenario's `typesense_environment_variables_api_key`, and that it
+    # listens on the non-default port the role rendered into TYPESENSE_API_PORT.
+    # Both are this role's template output and could not have come from anywhere else.
+    - name: Read the debug endpoint with the API key the role configured
+      ansible.builtin.uri:
+        url: "{{ typesense_verify_base_url }}/debug"
+        method: GET
+        headers:
+          X-TYPESENSE-API-KEY: "{{ typesense_environment_variables_api_key }}"
+        status_code: 200
+        follow_redirects: none
+      register: typesense_verify_debug
+
+    # This is what earns (or denies) an automated version bump: the process actually
+    # running has to be the version the leaf variable Renovate edits names. The
+    # image's `org.opencontainers.image.version` label reads `22.04` - the version of
+    # the Ubuntu base image - so it is useless here and /debug is the honest surface.
+    - name: Assert the running Typesense is the version defaults/main.yml pins
+      ansible.builtin.assert:
+        that: typesense_verify_debug.json.version == (typesense_verify_role_defaults.typesense_version | string)
+        fail_msg: >-
+          Typesense reports version {{ typesense_verify_debug.json.version | default('unknown') }},
+          but defaults/main.yml pins {{ typesense_verify_role_defaults.typesense_version }}
+        success_msg: "Typesense runs {{ typesense_verify_debug.json.version }}, as pinned in defaults/main.yml"
+
+    - name: Create a Typesense collection
+      ansible.builtin.uri:
+        url: "{{ typesense_verify_base_url }}/collections"
+        method: POST
+        headers:
+          X-TYPESENSE-API-KEY: "{{ typesense_environment_variables_api_key }}"
+        body_format: json
+        body:
+          name: "{{ typesense_verify_collection }}"
+          fields:
+            - {name: title, type: string}
+            - {name: points, type: int32}
+          default_sorting_field: points
+        status_code: 201
+        follow_redirects: none
+      register: typesense_verify_collection_creation
+      changed_when: true
+
+    - name: Assert the collection was created
+      ansible.builtin.assert:
+        that: typesense_verify_collection_creation.json.name == typesense_verify_collection
+        fail_msg: "Creating the collection returned {{ typesense_verify_collection_creation.json | default({}) }}"
+        success_msg: "Collection {{ typesense_verify_collection }} created"
+
+    - name: Index a document into the Typesense collection
+      ansible.builtin.uri:
+        url: "{{ typesense_verify_base_url }}/collections/{{ typesense_verify_collection }}/documents"
+        method: POST
+        headers:
+          X-TYPESENSE-API-KEY: "{{ typesense_environment_variables_api_key }}"
+        body_format: json
+        body:
+          id: molecule-1
+          title: "a {{ typesense_verify_hit_term }} document indexed by the Molecule scenario"
+          points: 7
+        status_code: 201
+        follow_redirects: none
+      register: typesense_verify_indexing
+      changed_when: true
+
+    - name: Assert the document was indexed
+      ansible.builtin.assert:
+        that: typesense_verify_indexing.json.id == 'molecule-1'
+        fail_msg: "Indexing the document returned {{ typesense_verify_indexing.json | default({}) }}"
+        success_msg: "Document indexed"
+
+    - name: Search Typesense for a term the indexed document contains
+      ansible.builtin.uri:
+        url: "{{ typesense_verify_base_url }}/collections/{{ typesense_verify_collection }}/documents/search?q={{ typesense_verify_hit_term }}&query_by=title"
+        method: GET
+        headers:
+          X-TYPESENSE-API-KEY: "{{ typesense_environment_variables_api_key }}"
+        status_code: 200
+        follow_redirects: none
+      register: typesense_verify_search_hit
+
+    - name: Assert the search finds the indexed document
+      ansible.builtin.assert:
+        that:
+          - typesense_verify_search_hit.json.found == 1
+          - typesense_verify_search_hit.json.hits[0].document.id == 'molecule-1'
+        fail_msg: "Searching for '{{ typesense_verify_hit_term }}' found {{ typesense_verify_search_hit.json.found | default('nothing') }} document(s)"
+        success_msg: "Searching for '{{ typesense_verify_hit_term }}' found the indexed document"
+
+    # Without this, an endpoint that answered every query with the whole collection
+    # would pass the check above just as happily.
+    - name: Search Typesense for a term no document contains
+      ansible.builtin.uri:
+        url: "{{ typesense_verify_base_url }}/collections/{{ typesense_verify_collection }}/documents/search?q={{ typesense_verify_miss_term }}&query_by=title"
+        method: GET
+        headers:
+          X-TYPESENSE-API-KEY: "{{ typesense_environment_variables_api_key }}"
+        status_code: 200
+        follow_redirects: none
+      register: typesense_verify_search_miss
+
+    - name: Assert the search does not invent a match
+      ansible.builtin.assert:
+        that: typesense_verify_search_miss.json.found == 0
+        fail_msg: "Searching for '{{ typesense_verify_miss_term }}' found {{ typesense_verify_search_miss.json.found }} document(s), expected none"
+        success_msg: "Searching for '{{ typesense_verify_miss_term }}' correctly found nothing"
+
+    - name: Look for Typesense's database under the role's data path
+      ansible.builtin.find:
+        paths: "{{ typesense_verify_data_path }}/db"
+        recurse: true
+        file_type: file
+      register: typesense_verify_data_files
+
+    - name: Assert Typesense writes its database into the role's data path
+      ansible.builtin.assert:
+        that: typesense_verify_data_files.matched > 0
+        fail_msg: "No files under {{ typesense_verify_data_path }}/db - the data bind-mount is not carrying Typesense's database"
+        success_msg: "Typesense's database lives under {{ typesense_verify_data_path }}/db"
+
+    # The systemd unit removes and re-creates the container on every start, so what is
+    # on the host under `typesense_data_path` is all that survives. This is also the
+    # shape of what a version bump does to a running installation.
+    - name: Restart typesense.service
+      ansible.builtin.systemd_service:
+        name: typesense.service
+        state: restarted
+
+    - name: Wait for Typesense to report itself healthy after the restart (up to 300s)
+      ansible.builtin.uri:
+        url: "{{ typesense_verify_base_url }}/health"
+        method: GET
+        status_code: [200, 503]
+        follow_redirects: none
+      register: typesense_verify_health_after_restart
+      until: typesense_verify_health_after_restart.status | default(0) == 200 and (typesense_verify_health_after_restart.json.ok | default(false) | bool)
+      retries: 60
+      delay: 5
+
+    - name: Search Typesense again after the restart
+      ansible.builtin.uri:
+        url: "{{ typesense_verify_base_url }}/collections/{{ typesense_verify_collection }}/documents/search?q={{ typesense_verify_hit_term }}&query_by=title"
+        method: GET
+        headers:
+          X-TYPESENSE-API-KEY: "{{ typesense_environment_variables_api_key }}"
+        status_code: 200
+        follow_redirects: none
+      register: typesense_verify_search_after_restart
+
+    - name: Assert the indexed document survived the container being re-created
+      ansible.builtin.assert:
+        that:
+          - typesense_verify_search_after_restart.json.found == 1
+          - typesense_verify_search_after_restart.json.hits[0].document.id == 'molecule-1'
+        fail_msg: "The indexed document did not survive a restart - Typesense's data is not actually persisted"
+        success_msg: "The indexed document survived a restart"
+
+    - name: Show Typesense verification summary
       ansible.builtin.debug:
         msg:
-          - "Typesense systemd: {{ typesense_service.status.ActiveState }}"
-          - "Typesense HTTP: {{ typesense_endpoint.status }}"
+          - "systemd: {{ typesense_verify_service.status.ActiveState }}"
+          - "version: {{ typesense_verify_debug.json.version }} (pinned: {{ typesense_verify_role_defaults.typesense_version }})"
+          - "unauthenticated /collections: {{ typesense_verify_anonymous.status }}"
+          - "wrong-key /debug: {{ typesense_verify_wrong_key.status }}"
+          - "search hit: {{ typesense_verify_search_hit.json.found }}, search miss: {{ typesense_verify_search_miss.json.found }}"
+          - "search after restart: {{ typesense_verify_search_after_restart.json.found }}"

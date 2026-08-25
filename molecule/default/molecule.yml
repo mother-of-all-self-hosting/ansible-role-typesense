@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: 2026 Slavi Pantaleev
 # SPDX-FileCopyrightText: 2026 spatterlight
 # SPDX-FileCopyrightText: 2026 Suguru Hirahara
 #
@@ -38,7 +39,17 @@ provisioner:
         typesense_hostname: localhost
         typesense_container_labels_traefik_enabled: false
         typesense_container_http_host_bind_port: 8108
-        typesense_environment_variables_api_key: secret
+
+        # Deliberately not Typesense's own default of 8108. The role renders it into
+        # TYPESENSE_API_PORT, so the process only listens here if the role's `env`
+        # template reached it; the container is then published as 8108:8111 and every
+        # HTTP check in verify.yml would hit a closed port otherwise.
+        typesense_container_http_port: 8111
+
+        # A value that nothing but this file could have produced, so that a 200 from
+        # an endpoint requiring it proves the role's `env` template reached the
+        # process rather than some fallback. See verify.yml.
+        typesense_environment_variables_api_key: molecule-typesense-4f2b9c1e
   env:
     # Workaround for https://github.com/ansible/molecule/issues/4391
     ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/..:/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles:~/.ansible/roles

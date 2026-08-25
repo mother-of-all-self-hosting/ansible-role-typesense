@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2018-2025 Slavi Pantaleev
+SPDX-FileCopyrightText: 2018-2026 Slavi Pantaleev
 SPDX-FileCopyrightText: 2019-2022 Aaron Raimist
 SPDX-FileCopyrightText: 2019-2023 MDAD project contributors
 SPDX-FileCopyrightText: 2023 QEDeD
@@ -47,7 +47,15 @@ Currently there is one testing scenario available.
 
 ### `default`
 
-Tests a standard Typesense installation.
+Tests a standard Typesense installation, and then exercises the running instance over its HTTP API:
+
+- the version reported by `/debug` has to equal `typesense_version` from [`defaults/main.yml`](../defaults/main.yml), the variable Renovate edits. The image's `org.opencontainers.image.version` label reads `22.04` (the version of its Ubuntu base image), so it cannot be used for this.
+- a request without an API key, and a request with a wrong one, both have to be refused with a `401`
+- the scenario's API key has to be accepted, and the scenario deliberately sets `typesense_container_http_port` to a value that is not Typesense's own default of `8108`. Both values reach the process only through the role's [`env`](../templates/env.j2) template, so every check here fails if the role's configuration did not arrive.
+- a collection is created and a document is indexed into it. A search for a term that document contains has to find it, and a search for a term no document contains has to find nothing.
+- Typesense's database has to be under `typesense_data_path` on the host, and the indexed document has to still be searchable after `typesense.service` is restarted and the container re-created, which is the shape of what a version bump does to a running installation
+
+Note that `Restart=always` in the systemd unit makes even a container that crashes on every start report the service as `active`, so the checks above, rather than the state of the unit, are what establishes that Typesense works.
 
 ## Running
 
