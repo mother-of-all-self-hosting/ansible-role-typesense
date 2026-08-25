@@ -1,6 +1,6 @@
 <!--
 SPDX-FileCopyrightText: 2020 - 2024 MDAD project contributors
-SPDX-FileCopyrightText: 2020 - 2024 Slavi Pantaleev
+SPDX-FileCopyrightText: 2020 - 2024, 2026 Slavi Pantaleev
 SPDX-FileCopyrightText: 2020 Aaron Raimist
 SPDX-FileCopyrightText: 2020 Chris van Dijk
 SPDX-FileCopyrightText: 2020 Dominik Zajac
@@ -71,6 +71,16 @@ typesense_container_labels_traefik_enabled: true
 After adjusting the hostname, make sure to adjust your DNS records to point the domain to your server.
 
 **Note**: hosting Typesense under a subpath (by configuring the `typesense_path_prefix` variable) does not seem to be possible due to Typesense's technical limitations.
+
+### Changing the port Typesense listens on (optional)
+
+Typesense listens on port `8108` inside its container. If you need a different one, set `typesense_container_http_port`. The role passes the value to Typesense as `TYPESENSE_API_PORT`, publishes the container's port accordingly, and points the Traefik label at it.
+
+```yaml
+typesense_container_http_port: 8108
+```
+
+**Note**: before this variable was rendered into the container's environment, it only changed the host-side port publishing and the Traefik label, while Typesense itself kept listening on `8108` — so any value other than the default produced a service that nothing could reach. If you worked around that by setting `TYPESENSE_API_PORT` through `typesense_environment_variables_additional_variables`, your override still wins and nothing needs to change.
 
 ### Extending the configuration
 
