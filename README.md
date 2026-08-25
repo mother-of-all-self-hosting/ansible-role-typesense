@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2023 Slavi Pantaleev
+SPDX-FileCopyrightText: 2023, 2026 Slavi Pantaleev
 SPDX-FileCopyrightText: 2025, 2026 Suguru Hirahara
 
 SPDX-License-Identifier: AGPL-3.0-or-later
@@ -35,3 +35,11 @@ just prek-install-git-pre-commit-hook
 This role supports [Molecule](https://docs.ansible.com/projects/molecule/), an Ansible testing framework designed for developing and testing Ansible collections, playbooks, and roles.
 
 Refer to [this page](./molecule/README.md) for details about how to utilize it.
+
+### Releases
+
+Release tags (`v<Typesense version>-<release>`, e.g. `v30.2-0`) are cut automatically by the [autotag workflow](.github/workflows/autotag.yml) when a commit lands on `main`. Nobody has to tag anything by hand.
+
+The tag is derived from the state of the repository — `typesense_version` in [`defaults/main.yml`](defaults/main.yml), plus the tags that already exist — rather than from commit messages, which makes it independent of the order in which pull requests get merged. A commit that only touches documentation or CI does not get a release.
+
+[`bin/compute-next-tag.sh`](bin/compute-next-tag.sh) holds all of that logic and can be run locally to see what the currently checked out commit would be released as. [`bin/test-compute-next-tag.sh`](bin/test-compute-next-tag.sh) exercises it against throwaway repositories, and runs as a prek hook whenever that script or `defaults/main.yml` changes.
