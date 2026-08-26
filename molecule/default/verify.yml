@@ -32,7 +32,7 @@
     - name: Read the role's defaults for the pinned Typesense version
       ansible.builtin.include_vars:
         file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/main.yml"
-        name: typesense_verify_role_defaults
+        name: typesense_defaults
 
     - name: Wait for typesense.service to become active (up to 180s)
       ansible.builtin.systemd_service:
@@ -133,10 +133,10 @@
     # the Ubuntu base image - so it is useless here and /debug is the honest surface.
     - name: Assert the running Typesense is the version defaults/main.yml pins
       ansible.builtin.assert:
-        that: typesense_verify_debug.json.version == (typesense_verify_role_defaults.typesense_version | string)
+        that: typesense_verify_debug.json.version == (typesense_defaults.typesense_version | string)
         fail_msg: >-
           Typesense reports version {{ typesense_verify_debug.json.version | default('unknown') }},
-          but defaults/main.yml pins {{ typesense_verify_role_defaults.typesense_version }}
+          but defaults/main.yml pins {{ typesense_defaults.typesense_version }}
         success_msg: "Typesense runs {{ typesense_verify_debug.json.version }}, as pinned in defaults/main.yml"
 
     - name: Create a Typesense collection
@@ -275,7 +275,7 @@
       ansible.builtin.debug:
         msg:
           - "systemd: {{ typesense_verify_service.status.ActiveState }}"
-          - "version: {{ typesense_verify_debug.json.version }} (pinned: {{ typesense_verify_role_defaults.typesense_version }})"
+          - "version: {{ typesense_verify_debug.json.version }} (pinned: {{ typesense_defaults.typesense_version }})"
           - "unauthenticated /collections: {{ typesense_verify_anonymous.status }}"
           - "wrong-key /debug: {{ typesense_verify_wrong_key.status }}"
           - "search hit: {{ typesense_verify_search_hit.json.found }}, search miss: {{ typesense_verify_search_miss.json.found }}"
