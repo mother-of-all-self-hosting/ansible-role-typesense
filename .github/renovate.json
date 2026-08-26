@@ -7,6 +7,6 @@
     "The Molecule scenario is what any future automerge would rest on, and it does more than watch the unit turn active (`Restart=always` makes even a crash-looping container report that). It asserts that the version reported by /debug equals the leaf variable Renovate edits, that an unauthenticated and a wrong-key request are both refused, that the API key and the non-default API port the role rendered into `env` are the ones the process is holding, that a document indexed through the API is found by a search that should match and not by one that should not, and that it is all still there after the service is restarted and the container re-created."
   ],
   "extends": [
-    "github>mother-of-all-self-hosting/renovate-config#v1.0.0"
+    "github>mother-of-all-self-hosting/renovate-config#v1.1.0"
   ]
 }
