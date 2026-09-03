@@ -194,7 +194,7 @@
         that:
           - typesense_verify_search_hit.json.found == 1
           - typesense_verify_search_hit.json.hits[0].document.id == 'molecule-1'
-        fail_msg: "Searching for '{{ typesense_verify_hit_term }}' found {{ typesense_verify_search_hit.json.found | default('nothing') }} document(s)"
+        fail_msg: "Searching for '{{ typesense_verify_hit_term }}' found {{ typesense_verify_search_hit.json.found | default('none') }} document(s)"
         success_msg: "Searching for '{{ typesense_verify_hit_term }}' found the indexed document"
 
     # Without this, an endpoint that answered every query with the whole collection
