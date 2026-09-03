@@ -265,12 +265,12 @@
         fail_msg: "The indexed document did not survive a restart - Typesense's data is not actually persisted"
         success_msg: "The indexed document survived a restart"
 
-    - name: Show Typesense verification summary
+    - name: Show the Typesense verification summary
       ansible.builtin.debug:
         msg:
-          - "systemd: {{ typesense_verify_service.status.ActiveState }}"
-          - "version: {{ typesense_verify_debug.json.version }} (pinned: {{ typesense_defaults.typesense_version }})"
-          - "unauthenticated /collections: {{ typesense_verify_anonymous.status }}"
-          - "wrong-key /debug: {{ typesense_verify_wrong_key.status }}"
-          - "search hit: {{ typesense_verify_search_hit.json.found }}, search miss: {{ typesense_verify_search_miss.json.found }}"
-          - "search after restart: {{ typesense_verify_search_after_restart.json.found }}"
+          - "Typesense systemd: {{ typesense_verify_service.status.ActiveState }}"
+          - "Typesense version: {{ typesense_verify_debug.json.version }} (pinned: {{ typesense_defaults.typesense_version }})"
+          - "Typesense unauthenticated /collections: {{ typesense_verify_anonymous.status }}"
+          - "Typesense wrong-key /debug: {{ typesense_verify_wrong_key.status }}"
+          - "Typesense search hit: {{ typesense_verify_search_hit.json.found }}, search miss: {{ typesense_verify_search_miss.json.found }}"
+          - "Typesense search after restart: {{ typesense_verify_search_after_restart.json.found }}"
