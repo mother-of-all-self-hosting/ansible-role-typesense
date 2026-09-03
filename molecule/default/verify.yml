@@ -127,10 +127,6 @@
         follow_redirects: none
       register: typesense_verify_debug
 
-    # This is what earns (or denies) an automated version bump: the process actually
-    # running has to be the version the leaf variable Renovate edits names. The
-    # image's `org.opencontainers.image.version` label reads `22.04` - the version of
-    # the Ubuntu base image - so it is useless here and /debug is the honest surface.
     - name: Assert the running Typesense is the version defaults/main.yml pins
       ansible.builtin.assert:
         that: typesense_verify_debug.json.version == (typesense_defaults.typesense_version | string)
