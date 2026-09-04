@@ -26,10 +26,10 @@
     typesense_verify_data_path: /typesense/data
 
   tasks:
-    # Only leaf literals may be read this way, and only for values that describe the
-    # role itself. Anything the scenario tunes has to come from molecule.yml's
-    # group_vars, which an `include_vars` would otherwise outrank.
-    - name: Read the role's defaults for the pinned Typesense version
+    # The role is not included in this playbook, so its defaults are not in
+    # scope. Reading defaults/main.yml directly ties the version assertion
+    # below.
+    - name: Load the role defaults
       ansible.builtin.include_vars:
         file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/main.yml"
         name: typesense_defaults
