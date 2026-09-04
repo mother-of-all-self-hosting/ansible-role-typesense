@@ -34,7 +34,7 @@
         file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/main.yml"
         name: typesense_defaults
 
-    - name: Wait for typesense.service to become active (up to 180s)
+    - name: Wait for Typesense to become active (up to 180s)
       ansible.builtin.systemd_service:
         name: typesense.service
       register: typesense_verify_service
@@ -46,7 +46,7 @@
     # on every start report `active` all the same. This assertion is here to fail
     # early with the state printed, not as evidence that Typesense works - that is
     # what the HTTP checks below are for.
-    - name: Assert typesense.service is active
+    - name: Assert Typesense is active
       ansible.builtin.assert:
         that: typesense_verify_service.status.ActiveState == 'active'
         fail_msg: "typesense.service not active ({{ typesense_verify_service.status.ActiveState }})"
