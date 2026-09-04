@@ -269,7 +269,7 @@
       ansible.builtin.debug:
         msg:
           - "Typesense systemd: {{ typesense_verify_service.status.ActiveState }}"
-          - "Typesense version: {{ typesense_verify_debug.json.version }} (pinned: {{ typesense_defaults.typesense_version }})"
+          - "Typesense version: {{ typesense_verify_debug.json.version }}"
           - "Typesense unauthenticated /collections: {{ typesense_verify_anonymous.status }}"
           - "Typesense wrong-key /debug: {{ typesense_verify_wrong_key.status }}"
           - "Typesense search hit: {{ typesense_verify_search_hit.json.found }}, search miss: {{ typesense_verify_search_miss.json.found }}"
