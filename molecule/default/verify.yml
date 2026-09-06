@@ -129,7 +129,7 @@
 
     - name: Assert the running Typesense is the version this role installs
       ansible.builtin.assert:
-        that: typesense_verify_debug.json.version == (typesense_defaults.typesense_version | string)
+        that: typesense_verify_debug.json.version == typesense_defaults.typesense_version | string
         fail_msg: "Typesense reports {{ typesense_verify_debug.json.version | default('none') }}, expected {{ typesense_defaults.typesense_version }}"
         success_msg: "Typesense reports {{ typesense_verify_debug.json.version }}"
 
