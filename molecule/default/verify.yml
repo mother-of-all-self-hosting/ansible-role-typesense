@@ -41,18 +41,20 @@
       until: typesense_verify_service.status.ActiveState == 'active'
       retries: 36
       delay: 5
+      # So that giving up is reported by the assertion below rather than as a
+      # wall of systemd unit properties.
+      failed_when: false
 
-    # The systemd unit carries `Restart=always`, which makes a container that crashes
-    # on every start report `active` all the same. This assertion is here to fail
-    # early with the state printed, not as evidence that Typesense works - that is
-    # what the HTTP checks below are for.
-    - name: Assert Typesense is active
+    # `Restart=always` in the systemd unit means that even a container which crashes
+    # and gets restarted reads as active here, so this is a precondition rather than
+    # a result.
+    - name: Assert the Typesense systemd service is active
       ansible.builtin.assert:
         that: typesense_verify_service.status.ActiveState == 'active'
-        fail_msg: "typesense.service not active ({{ typesense_verify_service.status.ActiveState }})"
+        fail_msg: "typesense.service is not active ({{ typesense_verify_service.status.ActiveState }})"
         success_msg: "typesense.service is active"
 
-    - name: Retrieve Typesense service log for debugging
+    - name: Retrieve the Typesense systemd service log for debugging
       when: typesense_debug_service_enabled | bool
       ansible.builtin.command:
         cmd: journalctl -xeu typesense.service
