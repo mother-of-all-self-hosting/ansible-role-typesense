@@ -57,7 +57,7 @@
     - name: Retrieve the Typesense systemd service log for debugging
       when: typesense_debug_service_enabled | bool
       ansible.builtin.command:
-        cmd: journalctl -xeu typesense.service
+        cmd: journalctl --no-pager --output=cat --unit=typesense.service
       changed_when: false
 
     # Typesense answers /health with a 503 and `{"ok": false}` while its (single-node)
