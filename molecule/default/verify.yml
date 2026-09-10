@@ -37,8 +37,8 @@
     - name: Wait for Typesense to become active (up to 180s)
       ansible.builtin.systemd_service:
         name: typesense.service
-      register: typesense_verify_service
-      until: typesense_verify_service.status.ActiveState == 'active'
+      register: typesense_service
+      until: typesense_service.status.ActiveState == 'active'
       retries: 36
       delay: 5
       # So that giving up is reported by the assertion below rather than as a
@@ -50,8 +50,8 @@
     # a result.
     - name: Assert the Typesense systemd service is active
       ansible.builtin.assert:
-        that: typesense_verify_service.status.ActiveState == 'active'
-        fail_msg: "typesense.service is not active ({{ typesense_verify_service.status.ActiveState }})"
+        that: typesense_service.status.ActiveState == 'active'
+        fail_msg: "typesense.service is not active ({{ typesense_service.status.ActiveState }})"
         success_msg: "typesense.service is active"
 
     - name: Retrieve the Typesense systemd service log for debugging
@@ -270,7 +270,7 @@
     - name: Show the Typesense verification summary
       ansible.builtin.debug:
         msg:
-          - "Typesense systemd: {{ typesense_verify_service.status.ActiveState }}"
+          - "Typesense systemd: {{ typesense_service.status.ActiveState }}"
           - "Typesense version: {{ typesense_verify_debug.json.version }}"
           - "Typesense unauthenticated /collections: {{ typesense_verify_anonymous.status }}"
           - "Typesense wrong-key /debug: {{ typesense_verify_wrong_key.status }}"
