@@ -25,6 +25,9 @@
     # `include_vars` - only leaf literals survive that. This is what it resolves to.
     typesense_verify_data_path: /typesense/data
 
+    typesense_verify_units:
+      - typesense.service
+
   tasks:
     - name: Verify that Typesense works
       block:
@@ -36,13 +39,14 @@
             file: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/defaults/main.yml"
             name: typesense_defaults
 
-        - name: Wait for Typesense to become active (up to 180s)
+        - name: Wait for the Typesense systemd services to become active (up to 180s each)
           ansible.builtin.systemd_service:
-            name: typesense.service
-          register: typesense_service
-          until: typesense_service.status.ActiveState == 'active'
+            name: "{{ item }}"
+          register: typesense_services
+          until: typesense_services.status.ActiveState == 'active'
           retries: 36
           delay: 5
+          loop: "{{ typesense_verify_units }}"
           # So that giving up is reported by the assertion below rather than as a
           # wall of systemd unit properties.
           failed_when: false
@@ -50,17 +54,20 @@
         # `Restart=always` in the systemd unit means that even a container which crashes
         # and gets restarted reads as active here, so this is a precondition rather than
         # a result.
-        - name: Assert the Typesense systemd service is active
+        - name: Assert the Typesense systemd services are active
           ansible.builtin.assert:
-            that: typesense_service.status.ActiveState == 'active'
-            fail_msg: "typesense.service is not active ({{ typesense_service.status.ActiveState }})"
-            success_msg: "typesense.service is active"
+            that: typesense_services.results | map(attribute='status.ActiveState') | unique | list == ['active']
+            fail_msg: >-
+              Not every service is active:
+              {{ dict(typesense_verify_units | zip(typesense_services.results | map(attribute='status.ActiveState'))) }}
+            success_msg: "Every systemd service is active"
 
-        - name: Retrieve the Typesense systemd service log for debugging
+        - name: Retrieve the Typesense systemd services log for debugging
           when: typesense_debug_service_enabled | bool
           ansible.builtin.command:
-            cmd: journalctl --no-pager --output=cat --unit=typesense.service
+            cmd: "journalctl --no-pager --output=cat --unit={{ item }}"
           changed_when: false
+          loop: "{{ typesense_verify_units }}"
 
         # Typesense answers /health with a 503 and `{"ok": false}` while its (single-node)
         # Raft group has no leader yet, so the body is worth reading rather than settling
@@ -272,7 +279,7 @@
         - name: Show the Typesense verification summary
           ansible.builtin.debug:
             msg:
-              - "Typesense systemd: {{ typesense_service.status.ActiveState }}"
+              - "Typesense systemd: {% for unit, state in typesense_verify_units | zip(typesense_services.results | map(attribute='status.ActiveState')) %}{{ unit }} ({{ state }}){% if not loop.last %}, {% endif %}{% endfor %}"
               - "Typesense version: {{ typesense_verify_debug.json.version }}"
               - "Typesense unauthenticated /collections: {{ typesense_verify_anonymous.status }}"
               - "Typesense wrong-key /debug: {{ typesense_verify_wrong_key.status }}"
