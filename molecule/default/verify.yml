@@ -72,23 +72,24 @@
         # Typesense answers /health with a 503 and `{"ok": false}` while its (single-node)
         # Raft group has no leader yet, so the body is worth reading rather than settling
         # for any response at all.
-        - name: Wait for Typesense to report itself healthy (up to 300s)
+        - name: Wait for Typesense to report itself healthy (up to 180s)
           ansible.builtin.uri:
             url: "{{ typesense_verify_base_url }}/health"
             method: GET
             status_code: [200, 503]
             follow_redirects: none
-          register: typesense_verify_health
-          until: typesense_verify_health.status | default(0) == 200 and (typesense_verify_health.json.ok | default(false) | bool)
-          retries: 60
+          register: typesense_health
+          until: typesense_health.status | default(0) == 200 and (typesense_health.json.ok | default(false) | bool)
+          retries: 36
           delay: 5
+          # So that giving up is reported by the assertion below rather than as a
+          # wall of systemd unit properties.
+          failed_when: false
 
         - name: Assert Typesense reports itself healthy
           ansible.builtin.assert:
-            that:
-              - typesense_verify_health.status == 200
-              - typesense_verify_health.json.ok | bool
-            fail_msg: "Typesense is not healthy ({{ typesense_verify_health.status | default('no response') }}: {{ typesense_verify_health.json | default({}) }})"
+            that: typesense_health.status == 200 and typesense_health.json.ok | bool
+            fail_msg: "Typesense did not report itself healthy: {{ typesense_health.status | default('no response') }}"
             success_msg: "Typesense reports itself healthy"
 
         # /health is the one unauthenticated endpoint, and it says nothing about which API
@@ -247,16 +248,25 @@
             name: typesense.service
             state: restarted
 
-        - name: Wait for Typesense to report itself healthy after the restart (up to 300s)
+        - name: Wait for Typesense to report itself healthy after the restart (up to 180s)
           ansible.builtin.uri:
             url: "{{ typesense_verify_base_url }}/health"
             method: GET
             status_code: [200, 503]
             follow_redirects: none
-          register: typesense_verify_health_after_restart
-          until: typesense_verify_health_after_restart.status | default(0) == 200 and (typesense_verify_health_after_restart.json.ok | default(false) | bool)
-          retries: 60
+          register: typesense_health_restart
+          until: typesense_health_restart.status | default(0) == 200 and (typesense_health_restart.json.ok | default(false) | bool)
+          retries: 36
           delay: 5
+          # So that giving up is reported by the assertion below rather than as a
+          # wall of systemd unit properties.
+          failed_when: false
+
+        - name: Assert Typesense reports itself healthy after the restart
+          ansible.builtin.assert:
+            that: typesense_health_restart.status == 200 and typesense_health_restart.json.ok | bool
+            fail_msg: "Typesense did not report itself healthy: {{ typesense_health_restart.status | default('no response') }}"
+            success_msg: "Typesense reports itself healthy"
 
         - name: Search Typesense again after the restart
           ansible.builtin.uri:
