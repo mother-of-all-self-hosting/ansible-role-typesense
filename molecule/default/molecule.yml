@@ -31,6 +31,7 @@ provisioner:
       all:
         # Helper variables
         typesense_debug_service_enabled: false
+        typesense_restarts_check_enabled: true
 
         # Variables for Typesense
         typesense_uid: 1000
