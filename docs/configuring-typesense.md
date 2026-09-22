@@ -90,7 +90,7 @@ Take a look at:
 
 - [`defaults/main.yml`](../defaults/main.yml) for some variables that you can customize via your `vars.yml` file. You can override settings (even those that don't have dedicated playbook variables) using the `typesense_environment_variables_additional_variables` variable
 
-See [the official documentation](https://typesense.org/docs/) for a complete list of Typesense's config options that you can put in `typesense_environment_variables_additional_variables`.
+Refer to [the official documentation](https://typesense.org/docs/) for a complete list of Typesense's config options that you can put in `typesense_environment_variables_additional_variables`.
 
 ## Installing
 
@@ -106,7 +106,7 @@ If you use the MASH playbook, the shortcut commands with the [`just` program](ht
 
 After running the command for installation, Typesense becomes available internally to other services on the same network. If the service is exposed to the internet, it becomes available at the specified hostname like `https://example.com`.
 
-See [this page](https://typesense.org/docs/guide/) on the documentation about its usage.
+Refer to [this page](https://typesense.org/docs/guide/) on the documentation about its usage.
 
 ## Troubleshooting
 
