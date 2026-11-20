@@ -23,8 +23,6 @@
   with_items:
     - typesense_uid
     - typesense_gid
-    - typesense_path_prefix
-    - typesense_container_network
     - typesense_environment_variables_api_key
 
 - name: Run if Traefik is enabled
